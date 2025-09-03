@@ -3,7 +3,6 @@ import requests
 from dagster_essentials.defs.assets import constants
 import dagster as dg
 
-
 @dg.asset
 def taxi_trips_file() -> None:
     """
@@ -14,5 +13,6 @@ def taxi_trips_file() -> None:
         f"https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_{month_to_fetch}.parquet"
     )
 
-    with open(constants.TAXI_TRIPS_TEMPLATE_FILE_PATH.format(month_to_fetch), "wb") as output_file:
-        output_file.write(raw_trips.content)
+    with open(constants.TAXI_TRIPS_TEMPLATE_FILE_PATH.format(month_to_fetch), "wb") as output_file_trip:
+        output_file_trip.write(raw_trips.content)
+
