@@ -1,7 +1,10 @@
 # src/dagster_essentials/defs/assets/trips.py
+import duckdb
+import os
+import dagster as dg
+from dagster._utils.backoff import backoff
 import requests
 from dagster_essentials.defs.assets import constants
-import dagster as dg
 
 @dg.asset
 def taxi_trips_file() -> None:
