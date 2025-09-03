@@ -8,7 +8,7 @@ from dagster_essentials.defs.assets import constants
 
 # Asset that fetches taxi trip data from NYC Open Data Portal API 
 @dg.asset
-def taxi_trips_file() -> None:
+def taxi_trips_file(context) -> None:
     """
       The raw parquet files for the taxi trips dataset. Sourced from the NYC Open Data portal.
     """
@@ -24,13 +24,13 @@ def taxi_trips_file() -> None:
     with open(file_path, "wb") as output_file_trip:
         output_file_trip.write(raw_trips.content)
 
-    context.log.info(f"Saved taxi trip file to {file_path}")
+    context.log.info("Saved taxi trip file to path")
 
 
 @dg.asset(
     deps=["taxi_trips_file"]
 )
-def taxi_trips() -> None:
+def taxi_trips(context) -> None:
     """
       The raw taxi trips dataset, loaded into a DuckDB database
     """
