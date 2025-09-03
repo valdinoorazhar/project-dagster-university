@@ -7,9 +7,7 @@ import requests
 from dagster_essentials.defs.assets import constants
 
 # Asset that fetches taxi trip data from NYC Open Data Portal API 
-@dg.asset(
-    '''config_schema={"month": str}  # set the month via run_config
-)'''
+@dg.asset
 def taxi_trips_file() -> None:
     """
       The raw parquet files for the taxi trips dataset. Sourced from the NYC Open Data portal.
