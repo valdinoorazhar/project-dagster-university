@@ -63,3 +63,31 @@ def manhattan_map() -> None:
     # Save the image
     plt.savefig(constants.MANHATTAN_MAP_FILE_PATH, format="png", bbox_inches="tight")
     plt.close(fig)
+
+
+@dg.asset(deps=["taxi_trips"])
+def trips_by_week() -> None:
+    file_path = constants.TRIPS_BY_WEEK_FILE_PATH
+
+    query = '''
+        SELECT
+            DATE_TRUNC('week' ,pickup_datetime) as period
+            , COUNT(vendor_id) as num_trips
+            , SUM(passenger_count) as passenger_count
+            , SUM(total_amount) as total_amount
+            , SUM(trip_distance) as trip_distance
+        FROM TRIPS
+        GROUP BY period
+    '''
+
+    conn = backoff(
+        fn=duckdb.connect,
+        retry_on=(RuntimeError, duckdb.IOException),
+        kwargs={
+            "database": os.getenv("DUCKDB_DATABASE"),
+        },
+        max_retries=10,
+    )
+
+    conn.execute(f"COPY ({query}) TO '{file_path}' (HEADER, DELIMITER ',');")
+    conn.close()
