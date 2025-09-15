@@ -1,11 +1,10 @@
 #src/dagster_essentials/defs/assets/metrics.py
 import dagster as dg
-from dagster._utils.backoff import backoff
+from dagster_duckdb import DuckDBResource
 
 import matplotlib.pyplot as plt
 import geopandas as gpd
 
-import duckdb
 import os
 
 from dagster_essentials.defs.assets import constants
@@ -13,7 +12,7 @@ from dagster_essentials.defs.assets import constants
 @dg.asset(
     deps=["taxi_trips", "taxi_zones"]
 )
-def manhattan_stats(context) -> None:
+def manhattan_stats(context, database: DuckDBResource) -> None:
     query = """
         select
             zones.zone,
@@ -26,16 +25,12 @@ def manhattan_stats(context) -> None:
         group by zone, borough, geometry
     """
 
-    conn = backoff(
-        fn=duckdb.connect,
-        retry_on=(RuntimeError, duckdb.IOException),
-        kwargs={
-            "database": os.getenv("DUCKDB_DATABASE"),
-        },
-        max_retries=10,
-    )
+    with database.get_connection() as conn:
+      context.log.info("Running query to create join 'trips' and 'zones' table")
+      trips_by_zone = conn.execute(query).fetch_df()
+
     # trips_by_zone is the result of query joining trips and zones tables
-    trips_by_zone = conn.execute(query).fetch_df()
+    #trips_by_zone = conn.execute(query).fetch_df()
 
     # Creating GeoPandas dataframe from trips_by_zone
     trips_by_zone["geometry"] = gpd.GeoSeries.from_wkt(trips_by_zone["geometry"])
@@ -66,7 +61,7 @@ def manhattan_map() -> None:
 
 
 @dg.asset(deps=["taxi_trips"])
-def trips_by_week() -> None:
+def trips_by_week(context, database: DuckDBResource) -> None:
     file_path = constants.TRIPS_BY_WEEK_FILE_PATH
 
     query = '''
@@ -80,14 +75,6 @@ def trips_by_week() -> None:
         GROUP BY period
     '''
 
-    conn = backoff(
-        fn=duckdb.connect,
-        retry_on=(RuntimeError, duckdb.IOException),
-        kwargs={
-            "database": os.getenv("DUCKDB_DATABASE"),
-        },
-        max_retries=10,
-    )
-
-    conn.execute(f"COPY ({query}) TO '{file_path}' (HEADER, DELIMITER ',');")
-    conn.close()
+    with database.get_connection() as conn:
+      context.log.info("Running query to copy TRIPS table aggregated by week to csv")
+      conn.execute(f"COPY ({query}) TO '{file_path}' (HEADER, DELIMITER ',');")

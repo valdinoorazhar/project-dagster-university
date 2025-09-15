@@ -1,8 +1,7 @@
 # src/dagster_essentials/defs/assets/trips.py
-import duckdb
 import os
 import dagster as dg
-from dagster._utils.backoff import backoff
+from dagster_duckdb import DuckDBResource
 import requests
 from dagster_essentials.defs.assets import constants
 
@@ -30,7 +29,7 @@ def taxi_trips_file(context) -> None:
 @dg.asset(
     deps=["taxi_trips_file"]
 )
-def taxi_trips(context) -> None:
+def taxi_trips(context, database:DuckDBResource) -> None:
     """
       The raw taxi trips dataset, loaded into a DuckDB database
     """
@@ -51,16 +50,9 @@ def taxi_trips(context) -> None:
         );
     """
 
-    conn = backoff(
-        fn=duckdb.connect,
-        retry_on=(RuntimeError, duckdb.IOException),
-        kwargs={
-            "database": os.getenv("DUCKDB_DATABASE"),
-        },
-        max_retries=10,
-    )
+    with database.get_connection() as conn:
+      context.log.info("Running query to create 'trips' table")
+      conn.execute(query)
 
-    context.log.info("Running query to create 'trips' table")
-    conn.execute(query)
-    conn.close()
-    context.log.info("Finished loading taxi trips into DuckDB")
+    #conn.close()
+    #context.log.info("Finished loading taxi trips into DuckDB")
