@@ -14,7 +14,9 @@ def taxi_trips_file(context) -> None:
     """
       The raw parquet files for the taxi trips dataset. Sourced from the NYC Open Data portal.
     """
-    month_to_fetch = '2023-03'
+    
+    partition_date_str = context.partition_key
+    month_to_fetch = partition_date_str[:-3]
     file_path = constants.TAXI_TRIPS_TEMPLATE_FILE_PATH.format(month_to_fetch)
 
     # Request the data from NYC Open Data Portal
