@@ -4,9 +4,12 @@ import dagster as dg
 from dagster_duckdb import DuckDBResource
 import requests
 from dagster_essentials.defs.assets import constants
+from dagster_essentials.defs.partitions import monthly_partition
 
 # Asset that fetches taxi trip data from NYC Open Data Portal API 
-@dg.asset
+@dg.asset(
+        partitions_def = monthly_partition
+)
 def taxi_trips_file(context) -> None:
     """
       The raw parquet files for the taxi trips dataset. Sourced from the NYC Open Data portal.
