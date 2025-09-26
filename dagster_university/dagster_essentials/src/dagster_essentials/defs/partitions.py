@@ -9,3 +9,9 @@ monthly_partition = dg.MonthlyPartitionsDefinition(
     start_date=start_date,
     end_date=end_date
 )
+
+weekly_parition = dg.WeeklyPartitionsDefinition (
+    start_date=start_date,
+    end_date=end_date
+)
+
