@@ -8,6 +8,7 @@ import geopandas as gpd
 import os
 
 from dagster_essentials.defs.assets import constants
+from dagster_essentials.defs.partitions import weekly_partition
 
 @dg.asset(
     deps=["taxi_trips", "taxi_zones"]
@@ -60,11 +61,12 @@ def manhattan_map() -> None:
     plt.close(fig)
 
 
-@dg.asset(deps=["taxi_trips"])
+@dg.asset(deps=["taxi_trips"], partitions_def = weekly_partition)
 def trips_by_week(context, database: DuckDBResource) -> None:
     file_path = constants.TRIPS_BY_WEEK_FILE_PATH
+    partition_week_str = context.partition_key
 
-    query = '''
+    query = f'''
         SELECT
             DATE_TRUNC('week' ,pickup_datetime) as period
             , COUNT(vendor_id) as num_trips
@@ -72,6 +74,7 @@ def trips_by_week(context, database: DuckDBResource) -> None:
             , SUM(total_amount) as total_amount
             , SUM(trip_distance) as trip_distance
         FROM TRIPS
+        WHERE DATE_TRUNC('week' ,pickup_datetime) = '{partition_week_str}'
         GROUP BY period
     '''
 
