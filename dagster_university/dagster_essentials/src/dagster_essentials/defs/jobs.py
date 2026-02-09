@@ -9,13 +9,13 @@ trips_by_week = dg.AssetSelection.assets("trips_by_week")
 # a job that includes all asset other than trips_by_week
 trip_update_job = dg.define_asset_job(
     name="trip_update_job",
-    partition_defs =  monthly_partition,
+    partitions_def=monthly_partition,
     selection=dg.AssetSelection.all() - trips_by_week
 )
 
 # this job will materialize trips_by_week asset
 weekly_update_job = dg.define_asset_job(
     name="weekly_update_job",
-    partition_defs = weekly_partition,
+    partitions_def=weekly_partition,
     selection=trips_by_week,
 )
