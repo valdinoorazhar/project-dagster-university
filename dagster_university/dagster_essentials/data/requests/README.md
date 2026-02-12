@@ -15,11 +15,7 @@ Create a new request by adding a file to this directory. The file has to be a va
 Here is a sample request:
 
 ```json
-{
-    "start_date": "2023-01-10",
-    "end_date": "2023-01-25",
-    "borough": "Staten Island"
-}
+8
 ```
 
 Assuming that the file is named `january-staten-island.json`, the result of the pipeline will be stored in `data/results/january-staten-island.json`.
